@@ -12,7 +12,15 @@ $endpoints = array();
 $requestData = array();
 
 $endpoints['thermostat'] = function(array $requestData): void {
-	echo 'TOF';
+	if(isset($requestData['temperature']) && isset($requestData['humidity'])) {
+		$temperature = $requestData['temperature'];
+		$humidity = $requestData['humidity'];
+		echo 'OK';
+	}
+	else {
+		http_response_code(400);
+		echo 'Missing or wrong parameters for this endpoint';	
+	}
 };
 
 if(!isset($_SERVER['HTTP_X_API_KEY'])) {
@@ -58,7 +66,7 @@ switch ($method) {
         break;
     case 'POST':
     	$check = strpos($role, 'w');
-        $requestData = $_POST;
+        $requestData = json_decode(file_get_contents('php://input'), true);;
         break;
     default:
     	$check = false;
@@ -67,5 +75,11 @@ if($check === false) {
     http_response_code(401);
 	die('Request method not allowed for your profile');	
 }
-$endpoints[$endpointName]($requestData);
+if(isset($endpoints[$endpointName])) {
+	$endpoints[$endpointName]($requestData);	
+}
+else {
+	http_response_code(404);
+	echo 'This endpoint does not exists';
+}
 ?>
