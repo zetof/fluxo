@@ -1,0 +1,71 @@
+<?php
+include_once('config.php');
+include_once('db_classes.php');
+include_once('pdo.php');
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+$BASE_URI = '/';
+$endpoints = array();
+$requestData = array();
+
+$endpoints['thermostat'] = function(array $requestData): void {
+	echo 'TOF';
+};
+
+if(!isset($_SERVER['HTTP_X_API_KEY'])) {
+	http_response_code(403);
+	die('You must provide a valid API key to proceed');
+}
+
+$header = $_SERVER['HTTP_X_API_KEY'];
+$sep = strpos($header, '::');
+if($sep === false) {
+	http_response_code(403);
+	die('Your API key is malformed');	
+}
+
+$keyName = substr($header, 0, $sep);
+$key = substr($header, $sep + 2);
+
+$stmt = $pdo->prepare("SELECT * FROM api_keys WHERE key_name=?");
+$stmt->execute([$keyName]);
+$apiKey = $stmt->fetch();
+if($apiKey) {
+	if(password_verify($key, $apiKey['key_hash'])) {
+		$role = $apiKey['key_role'];
+	}
+	else {
+		http_response_code(403);
+		die('Your API key is not correct');		
+	}	
+}
+else {
+	http_response_code(403);
+	die('Your API key does not exists');		
+}
+
+$parsedURI = parse_url($_SERVER['REQUEST_URI']);
+$endpointName = str_replace($BASE_URI, '', $parsedURI['path']);
+$method = $_SERVER['REQUEST_METHOD'];
+$check = true;
+switch ($method) {
+    case 'GET':
+    	$check = strpos($role, 'r');
+        $requestData = $_GET;
+        break;
+    case 'POST':
+    	$check = strpos($role, 'w');
+        $requestData = $_POST;
+        break;
+    default:
+    	$check = false;
+}
+if($check === false) {
+    http_response_code(401);
+	die('Request method not allowed for your profile');	
+}
+$endpoints[$endpointName]($requestData);
+?>

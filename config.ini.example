@@ -1,0 +1,5 @@
+[database]
+host = '<your-db-host>'
+dbname = '<your-db-name>'
+username = '<<your-db-user>'
+password = '<your-db-password>'
