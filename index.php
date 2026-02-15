@@ -11,11 +11,14 @@ $BASE_URI = '/';
 $endpoints = array();
 $requestData = array();
 
-$endpoints['thermostat'] = function(array $requestData): void {
+$endpoints['sensors'] = function(array $requestData, int $id, PDO $pdo): void {
 	if(isset($requestData['temperature']) && isset($requestData['humidity'])) {
-		$temperature = $requestData['temperature'];
+		$temp = $requestData['temperature'];
 		$humidity = $requestData['humidity'];
-		echo 'OK';
+		$stmt=$pdo->prepare('INSERT INTO sensors(sensor_id, sensor_temp, sensor_humidity, sensor_time) VALUES(?, ?, ?, ?)');
+		$stmt->execute([$id, $temp, $humidity, date('Y-m-d H:i:s')]);
+		http_response_code(201);
+		echo 'INSERTED';
 	}
 	else {
 		http_response_code(400);
@@ -38,12 +41,13 @@ if($sep === false) {
 $keyName = substr($header, 0, $sep);
 $key = substr($header, $sep + 2);
 
-$stmt = $pdo->prepare("SELECT * FROM api_keys WHERE key_name=?");
+$stmt = $pdo->prepare('SELECT * FROM api_keys WHERE key_name=?');
 $stmt->execute([$keyName]);
 $apiKey = $stmt->fetch();
 if($apiKey) {
 	if(password_verify($key, $apiKey['key_hash'])) {
 		$role = $apiKey['key_role'];
+		$id = $apiKey['key_id'];
 	}
 	else {
 		http_response_code(403);
@@ -76,7 +80,7 @@ if($check === false) {
 	die('Request method not allowed for your profile');	
 }
 if(isset($endpoints[$endpointName])) {
-	$endpoints[$endpointName]($requestData);	
+	$endpoints[$endpointName]($requestData, $id, $pdo);	
 }
 else {
 	http_response_code(404);
