@@ -14,10 +14,9 @@
 #include "root_ca.h"
 #include "secrets.h"
 
-#define DHT22_PIN  16 // ESP32 pin GPIO21 connected to DHT22 sensor
-
-// Endpoint connection data
-const char* endpoint = "https://fluxo.zetof.net/sensors";
+#define DHT22_PIN  16             // ESP32 pin GPIO21 connected to DHT22 sensor
+#define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
+#define TIME_TO_SLEEP  10         // 10 minutes
 
 DHT dht22(DHT22_PIN, DHT22);
 
@@ -25,7 +24,7 @@ void setup() {
   Serial.begin(9600);
   delay(1000);
 
-  esp_sleep_enable_timer_wakeup(60000000); // 60 seconds
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // 10 minutes
   
   dht22.begin();
 
@@ -48,7 +47,7 @@ void setup() {
     if(client) {
       client->setCACert(RootCa);
       HTTPClient https;    
-      if(https.begin(*client, endpoint)) {
+      if(https.begin(*client, API_ENDPOINT)) {
         https.addHeader("Content-Type", "application/json");
         https.addHeader("X-Api-Key", API_KEY);
         int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + "}");
@@ -63,7 +62,7 @@ void setup() {
       https.end();
     }
   }
-  Serial.println("Now Going in sleep mode for 1 minute");
+  Serial.println("Now Going in sleep mode for 10 minutes");
   Serial.flush();
   esp_deep_sleep_start();
 }
