@@ -6,6 +6,7 @@
  * For more detail (instruction and wiring diagram), visit https://esp32io.com/tutorials/esp32-dht22
  */
 
+#include "esp_sleep.h"
 #include <DHT.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -59,11 +60,14 @@ DHT dht22(DHT22_PIN, DHT22);
 
 void setup() {
   Serial.begin(9600);
+  delay(1000);
+
+  esp_sleep_enable_timer_wakeup(60000000); // 60 seconds
   
   dht22.begin();
 
   WiFi.begin(ssid, password);
-  Serial.println("Connecting");
+  Serial.println("Connecting to WiFi network");
   while(WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -71,40 +75,35 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
+
+  float temp = dht22.readTemperature();
+  float humidity  = dht22.readHumidity();
+  if (isnan(temp) || isnan(humidity)) {
+    Serial.println("Failed to read from DHT22 sensor!");
+  } else {
+    WiFiClientSecure *client = new WiFiClientSecure;
+    if(client) {
+      client->setCACert(zetofNetRootCa);
+      HTTPClient https;    
+      if(https.begin(*client, endpoint)) {
+        https.addHeader("Content-Type", "application/json");
+        https.addHeader("X-Api-Key", apiKey);
+        int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + "}");
+        if(httpResponseCode > 0) {
+          Serial.print("HTTP Response code: ");
+          Serial.println(httpResponseCode);
+        }
+        else {
+          Serial.printf("[HTTPS] PUT... failed, error: %s\n", https.errorToString(httpResponseCode).c_str());
+        }
+      }
+      https.end();
+    }
+  }
+  Serial.println("Now Going in sleep mode for 1 minute");
+  Serial.flush();
+  esp_deep_sleep_start();
 }
 
 void loop() {
-  if ((millis() - lastTime) > timerDelay) {
-    timerDelay = 600000;
-    if(WiFi.status()== WL_CONNECTED){
-      float temp = dht22.readTemperature();
-      float humidity  = dht22.readHumidity();
-      if (isnan(temp) || isnan(humidity)) {
-        Serial.println("Failed to read from DHT22 sensor!");
-      } else {
-        WiFiClientSecure *client = new WiFiClientSecure;
-        if(client) {
-          client->setCACert(zetofNetRootCa);
-          HTTPClient https;    
-          if(https.begin(*client, endpoint)) {
-            https.addHeader("Content-Type", "application/json");
-            https.addHeader("X-Api-Key", apiKey);
-            int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + "}");
-            if(httpResponseCode > 0) {
-              Serial.print("HTTP Response code: ");
-              Serial.println(httpResponseCode);
-            }
-            else {
-              Serial.printf("[HTTPS] PUT... failed, error: %s\n", https.errorToString(httpResponseCode).c_str());
-            }
-          }
-          https.end();
-        }
-      }
-    }
-    else {
-      Serial.println("WiFi Disconnected");
-    }
-    lastTime = millis();
-  }
 }
