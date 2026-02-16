@@ -12,11 +12,12 @@ $endpoints = array();
 $requestData = array();
 
 $endpoints['sensors'] = function(array $requestData, int $id, PDO $pdo): void {
-	if(isset($requestData['temperature']) && isset($requestData['humidity'])) {
+	if(isset($requestData['temperature']) && isset($requestData['humidity']) && isset($requestData['pressure'])) {
 		$temp = $requestData['temperature'];
 		$humidity = $requestData['humidity'];
-		$stmt=$pdo->prepare('INSERT INTO sensors(sensor_id, sensor_temp, sensor_humidity, sensor_time) VALUES(?, ?, ?, ?)');
-		$stmt->execute([$id, $temp, $humidity, date('Y-m-d H:i:s')]);
+		$pressure = $requestData['pressure'];
+		$stmt=$pdo->prepare('INSERT INTO sensors(sensor_id, sensor_temp, sensor_humidity, sensor_pressure, sensor_time) VALUES(?, ?, ?, ?, ?)');
+		$stmt->execute([$id, $temp, $humidity, $pressure, date('Y-m-d H:i:s')]);
 		http_response_code(201);
 		echo 'INSERTED';
 	}
@@ -77,7 +78,7 @@ switch ($method) {
 }
 if($check === false) {
     http_response_code(401);
-	die('Request method not allowed for your profile');	
+	die('Request method not allowed for your profile: '.$role);	
 }
 if(isset($endpoints[$endpointName])) {
 	$endpoints[$endpointName]($requestData, $id, $pdo);	
