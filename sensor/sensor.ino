@@ -19,6 +19,12 @@
 #define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
 #define TIME_TO_SLEEP 10           // 10 minutes
 
+const int altitude = 500;
+
+float temp;
+float humidity;
+float pressure;
+
 DHT dht22(DHT22_PIN, DHT22);
 Adafruit_BMP085 bmp;
 
@@ -28,9 +34,6 @@ void setup() {
 
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // 10 minutes
   
-  dht22.begin();
-  bmp.begin();
-
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.println("Connecting to WiFi network");
   while(WiFi.status() != WL_CONNECTED) {
@@ -41,37 +44,43 @@ void setup() {
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
-  float temp = dht22.readTemperature();
-  float humidity  = dht22.readHumidity();
-  float pressure = bmp.readPressure();
+  dht22.begin();
+  temp = dht22.readTemperature();
+  humidity  = dht22.readHumidity();
+
+  if(bmp.begin()) {
+    pressure = bmp.readPressure();
+  }
 
   if (isnan(temp) || isnan(humidity)) {
     Serial.println("Failed to read from DHT22 sensor!");
-  } else {
-    if (isnan(pressure)) {
-      Serial.println("Failed to read from BMP180 sensor!");
+  }
+  else {
+    if(isnan(pressure)) {
+      Serial.println("No BMP180 sensor found, setting pressure to default!");
+      pressure = 0;
     }
     else {
-      WiFiClientSecure *client = new WiFiClientSecure;
-      if(client) {
-        client->setCACert(RootCa);
-        HTTPClient https;    
-        if(https.begin(*client, API_ENDPOINT)) {
-          https.addHeader("Content-Type", "application/json");
-          https.addHeader("X-Api-Key", API_KEY);
-          int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + ",\"pressure\":" + String(pressure / 100) +"}");
-          if(httpResponseCode > 0) {
-            Serial.print("HTTP Response code: ");
-            Serial.println(httpResponseCode);
-          }
-          else {
-            Serial.printf("[HTTPS] PUT... failed, error: %s\n", https.errorToString(httpResponseCode).c_str());
-          }
-        }
-        https.end();
-      }
+      pressure = pressure * (1 + (9.81 * altitude) / (287 * (temp + 273.15)));
     }
-
+    WiFiClientSecure *client = new WiFiClientSecure;
+    if(client) {
+      client->setCACert(RootCa);
+      HTTPClient https;    
+      if(https.begin(*client, API_ENDPOINT)) {
+        https.addHeader("Content-Type", "application/json");
+        https.addHeader("X-Api-Key", API_KEY);
+        int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + ",\"pressure\":" + String(pressure / 100) +"}");
+        if(httpResponseCode > 0) {
+          Serial.print("HTTP Response code: ");
+          Serial.println(httpResponseCode);
+        }
+        else {
+          Serial.printf("[HTTPS] POST... failed, error: %s\n", https.errorToString(httpResponseCode).c_str());
+        }
+      }
+      https.end();
+    }
   }
   Serial.println("Now Going in sleep mode for 10 minutes");
   Serial.flush();
