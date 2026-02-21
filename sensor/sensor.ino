@@ -12,10 +12,11 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include <Wire.h>
 #include "root_ca.h"
 #include "secrets.h"
+#include "pinout.h"
 
-#define DHT22_PIN 15               // ESP32 pin GPIO15 connected to DHT22 sensor
 #define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
 #define TIME_TO_SLEEP 10           // 10 minutes
 
@@ -32,6 +33,8 @@ void setup() {
   Serial.begin(9600);
   delay(1000);
 
+  Wire.begin(I2C_SDA,I2C_SCL);
+  
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // 10 minutes
   
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -48,7 +51,10 @@ void setup() {
   temp = dht22.readTemperature();
   humidity  = dht22.readHumidity();
 
-  if(bmp.begin()) {
+  if(!bmp.begin()) {
+    Serial.println("Failed to initialize BMP180 module");
+  }
+  else {
     pressure = bmp.readPressure();
   }
 
