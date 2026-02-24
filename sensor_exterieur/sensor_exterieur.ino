@@ -15,12 +15,7 @@
 #include <Wire.h>
 #include "root_ca.h"
 #include "secrets.h"
-#include "pinout.h"
-
-#define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
-#define TIME_TO_SLEEP 10           // 10 minutes
-
-const int altitude = 500;
+#include "setup.h"
 
 float temp;
 float humidity;
@@ -38,7 +33,7 @@ void setup() {
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // 10 minutes
   
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.println("Connecting to WiFi network");
+  Serial.print("Connecting to WiFi network");
   while(WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -49,10 +44,10 @@ void setup() {
 
   dht22.begin();
   temp = dht22.readTemperature();
-  humidity  = dht22.readHumidity();
+  humidity = dht22.readHumidity();
 
   if(!bmp.begin()) {
-    Serial.println("Failed to initialize BMP180 module");
+    Serial.println("No BMP180 module found, working without");
   }
   else {
     pressure = bmp.readPressure();
@@ -63,12 +58,17 @@ void setup() {
   }
   else {
     if(isnan(pressure)) {
-      Serial.println("No BMP180 sensor found, setting pressure to default!");
+      Serial.println("Setting pressure to its default (0hPa)");
       pressure = 0;
     }
     else {
-      pressure = pressure * (1 + (9.81 * altitude) / (287 * (temp + 273.15)));
+      pressure = pressure * (1 + (9.81 * ALTITUDE) / (287 * (temp + 273.15)));
     }
+
+    Serial.println("Temperature: " + String(temp) + "°C");
+    Serial.println("Humidity:    " + String(humidity) + "%");
+    Serial.println("Pression:    " + String(pressure) + "hPa");
+
     WiFiClientSecure *client = new WiFiClientSecure;
     if(client) {
       client->setCACert(RootCa);
@@ -88,7 +88,7 @@ void setup() {
       https.end();
     }
   }
-  Serial.println("Now Going in sleep mode for 10 minutes");
+  Serial.println("Now Going in sleep mode for " + String(TIME_TO_SLEEP) +" minutes");
   Serial.flush();
   esp_deep_sleep_start();
 }
