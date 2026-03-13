@@ -7,4 +7,4 @@
 // Define POST endpoint for sensors to send their read data and its API key
 // An aPI key is of form: <location>::<complex_key>
 #define API_ENDPOINT "https://fluxo.zetof.net/sensors"
-#define API_KEY "exterieur::T9aKSOrbY8jtMVQTLGiGzAH86tOzjyUZGnCMEcPzL1o"
+#define API_KEY "QI9F89r5r8LSs3BSNLb36O7xQIHS_xkdWltrvprVayQ"

@@ -5,6 +5,9 @@
 #define I2C_SDA   21 // GPIO for I2C communication SDA setup by wire lib
 #define I2C_SCL   22 // GPIO for I2C communication SCL setup by wire lib
 
+// Sensor ID
+#define SENSOR_ID 1
+
 // Senors info
 #define ALTITUDE 500 // Altitude of the sensor in meters
 

@@ -1,17 +1,14 @@
-function Gauge({x, y, size, color, onColor, offColor, gradient, min, max, decimal, val, old, caption, unit}) {
+function Gauge({container, x, y, size, color, onColor, offColor, gradient, min, max, decimal, val, old, caption, unit}) {
   
   // Set size of gauge to 200px by default if not set in class
   this.size = size || 200;
 
   // Create canvas
   canvas = document.createElement('canvas');
-  canvas.style.left = x + "px";
-  canvas.style.top = y + "px";
-  canvas.style.position = "absolute";
   canvas.width = this.size;
   canvas.height =  1.15 * this.size;
-  body = document.getElementsByTagName("body")[0];
-  body.appendChild(canvas);
+  const parent = document.getElementById(container);
+  parent.appendChild(canvas);
   this.context = canvas.getContext("2d");
   
   // Set left upper corner
@@ -54,12 +51,14 @@ Gauge.prototype.computePos = function() {
 Gauge.prototype.setVals = function(old, val) {
   if(old >= this.min && old <= this.max && val >= this.min && val <= this.max) {
     if(this.decimal) {
-      this.old = 1 * old.toFixed(2);
-      this.val = 1 * val.toFixed(2);
+      this.old = 1 * old.toFixed(1);
+      this.val = 1 * val.toFixed(1);
+      this.diff = (this.val - this.old).toFixed(1);
     }
     else {
       this.old = 1 * Math.round(old);
       this.val = 1 * Math.round(val);
+      this.diff = this.val - this.old;
     }
     this.computePos();
     this.draw();
@@ -135,9 +134,15 @@ Gauge.prototype.draw = function() {
   this.drawNeedle(this.nowPos, "red");
 
   // Draw value with units
-  this.context.fillStyle = this.color.rgb();
-  this.context.font = 10 * Math.round(this.size / 100) + "px monospace";
   this.context.textAlign = "center";
   this.context.textBaseline = "middle";
-  this.context.fillText(this.val + this.unit, this.center, this.size - 25 * this.size / 100); 
+  this.context.fillStyle = this.color.rgb();
+  this.context.font = 10 * Math.round(this.size / 100) + "px monospace";
+  this.context.fillText(this.val + this.unit, this.center, this.size - 25 * this.size / 100);
+  this.context.fillStyle = this.onColor.rgb();
+  this.context.font = 6 * Math.round(this.size / 100) + "px monospace";
+  var diffString = "=";
+  if(this.diff > 0) diffString = "+" + this.diff.toString() + this.unit;
+  if(this.diff < 0) diffString = this.diff.toString() + this.unit;
+  this.context.fillText(diffString, this.center, this.size - 15 * this.size / 100);
 }

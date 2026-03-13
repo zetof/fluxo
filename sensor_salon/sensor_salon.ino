@@ -76,7 +76,7 @@ void setup() {
       if(https.begin(*client, API_ENDPOINT)) {
         https.addHeader("Content-Type", "application/json");
         https.addHeader("X-Api-Key", API_KEY);
-        int httpResponseCode = https.POST("{\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + ",\"pressure\":" + String(pressure / 100) +"}");
+        int httpResponseCode = https.POST("{\"id\":" + String(SENSOR_ID) + ",\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + ",\"pressure\":" + String(pressure / 100) +"}");
         if(httpResponseCode > 0) {
           Serial.print("HTTP Response code: ");
           Serial.println(httpResponseCode);

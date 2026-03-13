@@ -8,6 +8,9 @@
 // Senors info
 #define ALTITUDE 500 // Altitude of the sensor in meters
 
+// Sensor ID
+#define SENSOR_ID 2
+
 // Sleep time between two measures
 #define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
 #define TIME_TO_SLEEP  60          // 60 minutes (1 hour)
