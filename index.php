@@ -1,7 +1,8 @@
 <?php
-include_once('config.php');
-include_once('db_classes.php');
-include_once('pdo.php');
+include('config.php');
+include('i18n.php');
+include('db_classes.php');
+include('pdo.php');
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -12,64 +13,11 @@ $endpoints = array();
 $requestData = array();
 
 $endpoints['sensors'] = function($method, array $requestData, PDO $pdo): void {
-	if(isset($requestData['id'])) {
-		$id = $requestData['id'];
-		$stmt = $pdo->prepare('SELECT * FROM sensors WHERE id=?');
-		$stmt->execute([$id]);
-		$sensor = $stmt->fetch();
-		if($sensor) {
-			$location = $sensor['location'];
-		}
-		else {
-			http_response_code(400);
-			die('Not existing sensor ID');
-		}			
-	}
-	else {
-		http_response_code(400);
-		die('Missing sensor ID');			
-	}
-	switch($method) {
-		case 'GET':
-    		$stmt = $pdo->prepare('SELECT * FROM measures WHERE sensor_id=? ORDER BY id DESC LIMIT 24');
-    		$stmt->execute([$id]);
-    		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    		foreach ($rows as $key=>$value) {
-      			switch($key){
-        			case 0:
-          				echo 'var p_now = '.$value['sensor_pressure'].';';
-          				echo 'var h_now = '.$value['sensor_humidity'].';';
-          				echo 'var t_now = '.$value['sensor_temp'].';';
-          				break;
-        			case 3:  
-          				echo 'var p_old = '.$value['sensor_pressure'].';';
-          				echo 'var h_old = '.$value['sensor_humidity'].';';
-          				echo 'var t_old = '.$value['sensor_temp'].';';
-      			}
-      		}
-      		$data = [ 'location' => $location ];
-      		header('Content-Type: application/json; charset=utf-8');
-      		echo json_encode($data, JSON_UNESCAPED_UNICODE);
-			break;
-		case 'POST':
-			if(isset($requestData['temperature']) && isset($requestData['humidity']) && isset($requestData['pressure'])) {
-				$temp = $requestData['temperature'];
-				$humidity = $requestData['humidity'];
-				$pressure = $requestData['pressure'];
-				$stmt=$pdo->prepare('INSERT INTO measures(sensor_id, sensor_temp, sensor_humidity, sensor_pressure, sensor_time) VALUES(?, ?, ?, ?, ?)');
-				$stmt->execute([$id, $temp, $humidity, $pressure, date('Y-m-d H:i:s')]);
-				http_response_code(201);
-				echo 'INSERTED';
-			}
-		else {
-			http_response_code(400);
-			echo 'Missing or wrong parameters for this endpoint';			
-		}
-	}
+	include('sensors_api.php');
 };
 
 $endpoints['measures'] = function($method, array $requestData, PDO $pdo): void {
-	include_once('gauges.php');
+	include('gauges.php');
 };
 
 $method = $_SERVER['REQUEST_METHOD'];

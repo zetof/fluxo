@@ -5,9 +5,13 @@ function Gauge({container, x, y, size, color, onColor, offColor, gradient, min, 
 
   // Create canvas
   canvas = document.createElement('canvas');
+  // canvas.style.left = x + "px";
+  // canvas.style.top = y + "px";
+  // canvas.style.position = "absolute";
   canvas.width = this.size;
   canvas.height =  1.15 * this.size;
   const parent = document.getElementById(container);
+  alert(parent.offsetWidth);
   parent.appendChild(canvas);
   this.context = canvas.getContext("2d");
   
