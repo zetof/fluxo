@@ -12,5 +12,5 @@
 #define ALTITUDE 500 // Altitude of the sensor in meters
 
 // Sleep time between two measures
-#define uS_TO_S_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
-#define TIME_TO_SLEEP  60          // 60 minutes (1 hour)
+#define uS_TO_MIN_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
+#define TIME_TO_SLEEP  60            // 60 minutes (1 hour)

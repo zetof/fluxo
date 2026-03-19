@@ -30,7 +30,7 @@ void setup() {
 
   Wire.begin(I2C_SDA,I2C_SCL);
   
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // 10 minutes
+  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_MIN_FACTOR);
   
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to WiFi network");
@@ -88,7 +88,7 @@ void setup() {
       https.end();
     }
   }
-  Serial.println("Now Going in sleep mode for " + String(TIME_TO_SLEEP) +" minutes");
+  Serial.println("Now Going in sleep mode for " + String(TIME_TO_SLEEP) + " minutes");
   Serial.flush();
   esp_deep_sleep_start();
 }

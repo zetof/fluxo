@@ -1,0 +1,8 @@
+[dewpoint]
+no_risk = 'Conditions normales pas'
+moderate_risk = 'Risque modéré'
+high_risk = 'Risque élevé'
+
+frost = ' de gel'
+dew = ' de rosée'
+nothing = ' de rique particulier'
