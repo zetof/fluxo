@@ -8,12 +8,12 @@ if (!file_exists($langPath)) {
 
 $i18n = parse_ini_file($langPath, true);
 
-function _t($section, $prompt) {
+function _t($section, array $prompts) {
     global $i18n;
-    if(isset($i18n[$section][$prompt])) {
-        return $i18n[$section][$prompt];
+    $constructed = '';
+    foreach($prompts as $prompt) {
+        if(isset($i18n[$section][$prompt])) $constructed .= $i18n[$section][$prompt];
+        else $constructed .= "__i18n__<{$section}><{$prompt}>";
     }
-    else {
-        return "__i18n__<{$section}><{$prompt}>";
-    }
+    return $constructed;
 }

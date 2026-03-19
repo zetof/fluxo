@@ -3,15 +3,15 @@ function ComputeDewPoint($t, $h) {
 	$a = 17.27;
 	$b = 237.7;
 	$alpha = $a * $t / ($b + $t) + log($h / 100);
-	$dew = round($b * $alpha / ($a - $alpha));
+	$dew = round($b * $alpha / ($a - $alpha), 1);
 	$delta = $t - $dew;
 	if($delta < 2) $p1 = 'high_risk';
 	elseif ($delta <= 5) $p1 = 'moderate_risk';
 	else $p1 = 'no_risk';
 	if ($dew < 0) $p2 = 'frost';
 	elseif($dew <= 5) $p2 = 'dew';
-	else $prompt = 'nothing';
-    return ['val' => round($b * $alpha / ($a - $alpha), 1), 'desc' => _t('dewpoint', $p1)._t('dewpoint', $p2)];
+	else $p2 = 'nothing';
+    return ['val' => $dew, 'delta' => $delta, 'desc' => _t('dewpoint', [$p1, $p2])];
 }
 
 if(isset($requestData['id'])) {
