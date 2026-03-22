@@ -1,10 +1,12 @@
 <?php
-function ComputeDewPoint($t, $h) {
+function computeDewPoint($values) {
 	$a = 17.27;
 	$b = 237.7;
+	$h = $values[0]['humidity'];
+	$t = $values[0]['temperature'];
 	$alpha = $a * $t / ($b + $t) + log($h / 100);
 	$dew = round($b * $alpha / ($a - $alpha), 1);
-	$delta = $t - $dew;
+	$delta = round($t - $dew, 1);
 	if($delta < 2) $p1 = 'high_risk';
 	elseif ($delta <= 5) $p1 = 'moderate_risk';
 	else $p1 = 'no_risk';
@@ -33,73 +35,20 @@ else {
 }
 switch($method) {
 	case 'GET':
-    	$stmt = $pdo->prepare('SELECT * FROM measures WHERE sensor_id=? ORDER BY id DESC LIMIT 25');
+	$values = [];
+    	$stmt = $pdo->prepare('SELECT * FROM measures WHERE sensor_time >= now() - INTERVAL 24 HOUR AND sensor_id=? ORDER BY id DESC');
     	$stmt->execute([$id]);
     	$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     	foreach ($rows as $key=>$value) {
-        	$t = $value['sensor_temp'];
-        	$h = $value['sensor_humidity'];
-        	$p = $value['sensor_pressure'];
-      		switch($key){
-        		case 0:
-        			$time = $value['sensor_time'];
-        			$valid = time() - strtotime($time) < 3600;
-        			$last_t = $t;
-        			$last_h = $h;
-        			$last_p = $p;
-        			$dewPoint = ComputeDewPoint($t, $h);
-          			$last = ['temperature' => $t, 'humidity' => $h, 'pressure' => $p];
-          			break;
-        		case 3:  
-          			$h_3 = ['temperature' => $t, 'humidity' => $h, 'pressure' => $p];
-          			$delta_p = $last_p - $p;
-      		}
+    		$time = $value['sensor_time'];
+        	$temp = $value['sensor_temp'];
+        	$humi = $value['sensor_humidity'];
+        	$pres = $value['sensor_pressure'];
+        	array_push($values, ['time' => $time, 'temperature' => $temp, 'humidity' => $humi, 'pressure' => $pres]);
       	}
-      	switch(true) {
-      		case($delta_p < -2):
-      			$score = -3;
-      			break;
-      		case($delta_p < -1):
-      			$score = -2;
-      			break;
-      		case($delta_p < 1):
-      			$score = 0;
-      			break;
-      		case($delta_p < 2):
-      			$score = 2;
-      			break;
-      		default:
-      			$score = 3;
-      	}
-      	switch(true) {
-      		case($h > 85):
-      			$score += -2;
-      			break;
-      		case($h > 70):
-      			$score += -1;
-      			break;
-      		case($h > 50):
-      			$score += 0;
-      			break;
-      		default:
-      			$score += 1;
-      	}
-      	switch(true) {
-      		case($score <= -3):
-      			$forecast = 'Pluie ou vent proche';
-      			break;
-      		case($score <= -1):
-      			$forecast = 'Dégradation probable';
-      			break;
-      		case($score == 0):
-      			$forecast = 'Stable';
-      			break;
-      		case($score >= 1):
-      			$forecast = 'Amélioration';
-      		case($score >= 4):
-      			$forecast = 'Beau temps installé';
-      	}
-      	$data = ['valid' => $valid, 'time' => $time, 'last' => $last, 'h_3' => $h_3, 'dewPoint' => $dewPoint, 'score' => $score, 'forecast' => $forecast ];
+        $valid = time() - strtotime($values[0]['time']) < 3600 && count($rows) == 24;
+        $dewPoint = ComputeDewPoint($values);
+      	$data = ['valid' => $valid, 'dewPoint' => $dewPoint, 'values' => $values];
       	header('Content-Type: application/json; charset=utf-8');
       	echo json_encode($data, JSON_UNESCAPED_UNICODE);
 		break;

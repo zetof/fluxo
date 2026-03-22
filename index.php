@@ -12,11 +12,29 @@ $BASE_URI = '/';
 $endpoints = array();
 $requestData = array();
 
-$endpoints['sensors'] = function($method, array $requestData, PDO $pdo): void {
+function getAPI($endpoint, $token, $requestData) {
+	$baseURL = 'https://fluxo.zetof.net/';
+	$params = ['token' => $token];
+	switch($endpoint) {
+		case 'sensors':
+			$params['id'] = $requestData['id'];
+			break;
+	}
+	$url = $baseURL.$endpoint.'?'.http_build_query($params);
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_URL, $url);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	$response = curl_exec($curl);
+	curl_close($curl);
+	return json_decode($response, true);
+}
+
+$endpoints['sensors'] = function($method, $token, array $requestData, PDO $pdo): void {
 	include('sensors_api.php');
 };
 
-$endpoints['measures'] = function($method, array $requestData, PDO $pdo): void {
+$endpoints['measures'] = function($method, $token, array $requestData, PDO $pdo): void {
+	$data = getAPI('sensors', $token, $requestData);
 	include('gauges.php');
 };
 
@@ -78,7 +96,7 @@ if($check === false) {
 $parsedURI = parse_url($_SERVER['REQUEST_URI']);
 $endpointName = str_replace($BASE_URI, '', $parsedURI['path']);
 if(isset($endpoints[$endpointName])) {
-	$endpoints[$endpointName]($method, $requestData, $pdo);	
+	$endpoints[$endpointName]($method, $token, $requestData, $pdo);	
 }
 else {
 	http_response_code(404);
