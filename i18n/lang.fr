@@ -1,8 +1,30 @@
-[dewpoint]
-no_risk = 'Conditions normales pas'
-moderate_risk = 'Risque modéré'
-high_risk = 'Risque élevé'
+[datetime]
+format1 = 'd '
+format2 = 'M'
+format3 = ' Y à H\hi'
+jan     = 'Janvier'
+feb     = 'Février'
+mar     = 'Mars'
+apr     = 'Avril'
+may     = 'Mai'
+jun     = 'Juin'
+jul     = 'Juillet'
+aug     = 'Août'
+sep     = 'Septembre'
+oct     = 'Octobre'
+nov     = 'Novembre'
+dec     = 'Décembre'
 
-frost = ' de gel prévu'
-dew = ' de rosée prévue'
-nothing = ' de rique particulier prévu'
+[dewpoint]
+no_risk       = 'Conditions normales pas'
+moderate_risk = 'Risque modéré'
+high_risk     = 'Risque élevé'
+frost         = ' de gel prévu'
+dew           = ' de rosée prévue'
+nothing       = ' de rique particulier prévu'
+
+[gauges]
+measures    = "Mesures du "
+temperature = "température"
+humidity    = "humidité"
+pressure    = "pression"

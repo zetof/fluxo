@@ -5,11 +5,34 @@ html, body {
   background-color: black;
 }
 
-.wrapper{
-  width:80%;
-  display:block;
-  overflow:hidden;
-  margin:0 auto;
-  padding: 20px;
-  background:#222;
+.wrapper {
+  width: 80%;
+  display: block;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 5px;
+}
+
+.header {
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.centered {
+  width: max-content;
+  padding: 0;
+  margin: 0 auto;
+}
+
+span.ok {
+  color: lightgreen;
+}
+
+span.ko {
+  color: red;
+}
+
+canvas {
+  margin: 0 10px;
 }
