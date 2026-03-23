@@ -33,6 +33,7 @@ else {
 	http_response_code(400);
 	die('Missing sensor ID');			
 }
+
 switch($method) {
 	case 'GET':
 	$values = [];
@@ -46,7 +47,7 @@ switch($method) {
         	$pres = $value['sensor_pressure'];
         	array_push($values, ['time' => $time, 'temperature' => $temp, 'humidity' => $humi, 'pressure' => $pres]);
       	}
-        $valid = time() - strtotime($values[0]['time']) < 3600 && count($rows) == 24;
+        $valid = time() - strtotime($values[0]['time']) < 3600;
         $dewPoint = ComputeDewPoint($values);
       	$data = ['valid' => $valid, 'dewPoint' => $dewPoint, 'values' => $values];
       	header('Content-Type: application/json; charset=utf-8');

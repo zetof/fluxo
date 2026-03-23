@@ -17,6 +17,7 @@ function getAPI($endpoint, $token, $requestData) {
 	$params = ['token' => $token];
 	switch($endpoint) {
 		case 'sensors':
+			if(!isset($requestData['id'])) die('Missing sensor ID');
 			$params['id'] = $requestData['id'];
 			break;
 	}
@@ -24,8 +25,10 @@ function getAPI($endpoint, $token, $requestData) {
 	$curl = curl_init();
 	curl_setopt($curl, CURLOPT_URL, $url);
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_FAILONERROR, true);
 	$response = curl_exec($curl);
 	curl_close($curl);
+	if($response === false) die('An error occurred while requesting data');
 	return json_decode($response, true);
 }
 
