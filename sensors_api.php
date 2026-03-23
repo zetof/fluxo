@@ -49,7 +49,7 @@ switch($method) {
       	}
         $valid = time() - strtotime($values[0]['time']) < 3600;
         $dewPoint = ComputeDewPoint($values);
-      	$data = ['valid' => $valid, 'dewPoint' => $dewPoint, 'values' => $values];
+      	$data = ['location' => $location, 'valid' => $valid, 'dewPoint' => $dewPoint, 'values' => $values];
       	header('Content-Type: application/json; charset=utf-8');
       	echo json_encode($data, JSON_UNESCAPED_UNICODE);
 		break;
