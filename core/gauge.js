@@ -21,7 +21,6 @@ function Gauge({container, x, y, size, color, onColor, offColor, gradient, min, 
   this.offColor = offColor || new Color(63, 63, 63);
   this.gradient = gradient || ["darkblue", "deepskyblue", "green", "orange", "red"];
   
-  this.computePos();
   this.caption = caption || "";
   this.unit = unit || "";
   this.center = this.size / 2;
@@ -32,7 +31,7 @@ function Gauge({container, x, y, size, color, onColor, offColor, gradient, min, 
   val = val || this.min + (this.max - this.min) / 2;
   old = old || this.min + (this.max - this.min) / 2;
 
-  this.setVals(old, val);
+  this.animate(old, val);
 
   if(this.caption != ""){
     this.context.fillStyle = this.color.rgb();
@@ -43,9 +42,19 @@ function Gauge({container, x, y, size, color, onColor, offColor, gradient, min, 
   }
 }
 
-Gauge.prototype.computePos = function() {
-  this.oldPos = (this.old - this.min) / (this.max - this.min);
-  this.nowPos = (this.val - this.min) / (this.max - this.min);
+Gauge.prototype.animate = function(old, val, index=0) {
+  const MAX_ITER = 200;
+  const DELAY = 5;
+  iOld = this.min + (this.min - old) * (Math.pow((MAX_ITER - index) / MAX_ITER, 3) - 1);
+  iVal = this.min + (this.min - val) * (Math.pow((MAX_ITER - index) / MAX_ITER, 3) - 1);
+  this.setVals(iOld, iVal);
+  index++;
+  if(index <= MAX_ITER) setTimeout(this.animate.bind(this, old, val, index), DELAY);
+}
+
+Gauge.prototype.computePos = function(old, val) {
+  this.oldPos = (old - this.min) / (this.max - this.min);
+  this.nowPos = (val - this.min) / (this.max - this.min);
 }
 
 Gauge.prototype.setVals = function(old, val) {
@@ -60,7 +69,7 @@ Gauge.prototype.setVals = function(old, val) {
       this.val = 1 * Math.round(val);
       this.diff = this.val - this.old;
     }
-    this.computePos();
+    this.computePos(old, val);
     this.draw();
   }
 }
