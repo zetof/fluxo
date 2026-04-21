@@ -23,31 +23,39 @@
     </div>
     <div class="wrapper">
         <div id="temperature" class="centered">
-        <canvas id="historyChart" width="900" height="450"></canvas>
+        <canvas id="historyChart" width="750" height="450"></canvas>
         </div>
     </div>
 
     <script>
     <?php
-        echo 'var p_now = '.$data['values'][0]['pressure'].';';
-        echo 'var h_now = '.$data['values'][0]['humidity'].';';
-        echo 'var t_now = '.$data['values'][0]['temperature'].';';
-        echo 'var p_old = '.$data['values'][3]['pressure'].';';
-        echo 'var h_old = '.$data['values'][3]['humidity'].';';
-        echo 'var t_old = '.$data['values'][3]['temperature'].';';
+        echo 'var pNow = '.$data['values'][0]['pressure'].';';
+        echo 'var hNow = '.$data['values'][0]['humidity'].';';
+        echo 'var tNow = '.$data['values'][0]['temperature'].';';
+        echo 'var pOld = '.$data['values'][3]['pressure'].';';
+        echo 'var hOld = '.$data['values'][3]['humidity'].';';
+        echo 'var tOld = '.$data['values'][3]['temperature'].';';
+
+        
+        const PMIN = 990;
+        const PMAX = 1040;
 
         $last = count($data['values']) - 1;
         $index = $last;
-        while($index) {
+        while($index >= 0) {
         if($index == $last) {
             $xVals = '["'.date_format(date_create($data['values'][$index]['time']),"H:i").'"';
-            $ypVals = '['.strval($data['values'][$index]['pressure']);
+            $p = $data['values'][$index]['pressure'];
+            if($p >= PMIN && $p <= PMAX) $ypVals = '['.strval($p);
+            else $ypVals = '[NaN';
             $yhVals = '['.strval($data['values'][$index]['humidity']);
             $ytVals = '['.strval($data['values'][$index]['temperature']);
         }
         else {
             $xVals .= ', "'.date_format(date_create($data['values'][$index]['time']),"H:i").'"';
-            $ypVals .= ', '.strval($data['values'][$index]['pressure']);
+            $p = $data['values'][$index]['pressure'];
+            if($p >= PMIN && $p <= PMAX) $ypVals .= ', '.strval($p);
+            else $ypVals .= ', NaN';
             $yhVals .= ', '.strval($data['values'][$index]['humidity']);
             $ytVals .= ', '.strval($data['values'][$index]['temperature']);
         }
@@ -65,9 +73,9 @@
         gt = ["darkblue", "deepskyblue", "green", "orange", "red"];
 
         // Display 3 gauges for outside pressure, humidity and temperature
-        pression = new Gauge({container:"gauges", x:20, y:20, size:240, min:913, max:1113, val:p_now, old:p_old, gradient:gp, caption:"<?php _t('gauges',['pressure'], display:true, up:true); ?>", unit:"hPa"});
-        humidity = new Gauge({container:"gauges", x:340, y:20, size:240, min:0, max:100, val:h_now, old:h_old, gradient:gh, caption:"<?php _t('gauges',['humidity'], display:true, up:true); ?>", unit:"%"});
-        temperature = new Gauge({container:"gauges", x:660, y:20, size:240, min:-20, max:50, val:t_now, old:t_old, decimal:true, gradient:gt, caption:"<?php _t('gauges',['temperature'], display:true, up:true); ?>", unit:"°C"});
+        pression = new Gauge({container:"gauges", x:20, y:20, size:240, min:913, max:1113, val:pNow, old:pOld, gradient:gp, caption:"<?php _t('gauges',['pressure'], display:true, up:true); ?>", unit:"hPa"});
+        humidity = new Gauge({container:"gauges", x:340, y:20, size:240, min:0, max:100, val:hNow, old:hOld, gradient:gh, caption:"<?php _t('gauges',['humidity'], display:true, up:true); ?>", unit:"%"});
+        temperature = new Gauge({container:"gauges", x:660, y:20, size:240, min:-20, max:50, val:tNow, old:tOld, decimal:true, gradient:gt, caption:"<?php _t('gauges',['temperature'], display:true, up:true); ?>", unit:"°C"});
     
         const ctx = document.getElementById('historyChart');
         Chart.defaults.color = 'white';
@@ -110,17 +118,23 @@
                     yTemp: {
                         type: 'linear',
                         position: 'left',
+                        min: -20,
+                        max: 50,
                         title: { display: true, text: '°C' }
                     },
                     yHum: {
                         type: 'linear',
                         position: 'right',
+                        min: 0,
+                        max: 100,
                         title: { display: true, text: '%' },
                         grid: { drawOnChartArea: false }
                     },
                     yPres: {
                         type: 'linear',
                         position: 'right',
+                        min: 990,
+                        max: 1040,
                         title: { display: true, text: 'hPa' },
                         grid: { drawOnChartArea: false },
                         offset: true

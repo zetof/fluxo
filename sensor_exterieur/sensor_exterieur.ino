@@ -17,6 +17,8 @@
 #include "secrets.h"
 #include "setup.h"
 
+bool wifiOK = false;
+int wifiRetries;
 float temp;
 float humidity;
 float pressure;
@@ -31,13 +33,24 @@ void setup() {
   Wire.begin(I2C_SDA,I2C_SCL);
   
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_MIN_FACTOR);
-  
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to WiFi network");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+
+  while(!wifiOK) {
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.print("Connecting to WiFi network");
+    while(WiFi.status() != WL_CONNECTED && wifiRetries < WIFI_RETRIES) {
+      delay(500);
+      Serial.print(".");
+      wifiRetries++;
+    }
+    if(wifiRetries < WIFI_RETRIES) wifiOK = true;
+    else {
+      Serial.println("");
+      Serial.println("Problem connecting to WiFi. Turning off module, waiting for a while and retrying...");
+      WiFi.disconnect(true);
+      delay(1000 * WIFI_DELAY);
+    }
   }
+
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
