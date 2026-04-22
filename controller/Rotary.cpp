@@ -1,5 +1,6 @@
 /*
   Rotary.cpp - Library to reliably read a rotary selector with push button on en ESP32
+  Heavily base on this page: https://garrysblog.com/2021/03/20/reliably-debouncing-rotary-encoders-with-arduino-and-esp32/
   Created by ZeToF!, April 1, 2026
   Released into the public domain
 */

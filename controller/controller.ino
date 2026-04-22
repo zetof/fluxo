@@ -3,26 +3,33 @@
 #include <Wire.h>
 #include "setup.h"
 
-const int rs = 13, en = 14, d4 = 9, d5 = 10, d6 = 11, d7 = 12, bl=15;
-
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-Rotary rotary(4, 5, 6);
+// Declare LCD 16x2 and rotary selector interfaces
+LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
+Rotary rotary(CLK_PIN, DT_PIN, SW_PIN);
  
 void setup() {
+
+  // Set serial speed for debugging and wait for a while before starting
   Serial.begin(9600);
   delay(1000);
+
+  // Initialise I2C bus to slave driver device 
   Wire.begin(I2C_SDA,I2C_SCL);
-  rotary.begin();
-  pinMode(bl, OUTPUT);
+
+  // Start LCD 16x2 and rotary selector
   lcd.begin(16, 2);
+  rotary.begin();
+
+  // Set GPIO mode for LCD 16x2 backlighting
+  pinMode(BACKLIGHT, OUTPUT);
   lcd.print("ROTARY SELECTOR:");
-  digitalWrite(bl, LOW);
+  digitalWrite(BACKLIGHT, LOW);
 }
  
 void loop() {
   int val = rotary.read();
   if(val != 0) {
-    digitalWrite(bl, HIGH);
+    digitalWrite(BACKLIGHT, HIGH);
     lcd.setCursor(0, 1);
     if(val == 1) lcd.print("CLOCKWISE       ");
     else lcd.print("COUNTERCLOCKWISE");
@@ -32,7 +39,7 @@ void loop() {
     uint8_t error = Wire.endTransmission(true);    
   }
   if(rotary.click()) {
-    digitalWrite(bl, HIGH);
+    digitalWrite(BACKLIGHT, HIGH);
     lcd.setCursor(0, 1);
     lcd.print("CLICK!          ");
     Serial.println("CLICK!");
