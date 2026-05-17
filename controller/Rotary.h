@@ -24,8 +24,8 @@ class Rotary
     bool _click = false;
     int _debounce = 0;
     const int _threshold = 100;
-    void rotate();
-    void button();
+    void _rotate();
+    void _button();
 };
 
 #endif

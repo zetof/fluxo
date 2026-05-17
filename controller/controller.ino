@@ -13,7 +13,7 @@ void setup() {
   Serial.begin(9600);
   delay(1000);
 
-  // Initialise I2C bus to slave driver device 
+  // Initialise I2C bus to slave driver device
   Wire.begin(I2C_SDA,I2C_SCL);
 
   // Start LCD 16x2 and rotary selector

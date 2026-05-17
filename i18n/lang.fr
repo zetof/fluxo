@@ -16,12 +16,13 @@ nov     = "Novembre"
 dec     = "Décembre"
 
 [dewpoint]
-no_risk       = "Conditions normales pas"
-moderate_risk = "Risque modéré"
-high_risk     = "Risque élevé"
-frost         = " de gel prévu"
-dew           = " de rosée prévue"
-nothing       = " de rique particulier prévu"
+black_frost = "Gel noir - Invisible, danger sur la route"
+frost       = "Givre - Dépôt solide sur les surfaces"
+white_frost = "Gel blanc - Rosée qui gèle ensuite"
+mist        = "Brouillard probable - Condensation imminente"
+dew         = "Rosée - Condensation sur surfaces froides"
+humide      = "Humide - Hygrométrie élevée, pas de condensation immédiate"
+dry         = "Air sec - Aucun risque de condensation"
 
 [gauges]
 measures    = "Mesures prises "

@@ -19,12 +19,12 @@ void Rotary::begin() {
   pinMode(_clk_pin, INPUT);
   pinMode(_dt_pin, INPUT);
   pinMode(_sw_pin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(_clk_pin), std::bind(&Rotary::rotate, this), CHANGE);
-  attachInterrupt(digitalPinToInterrupt(_dt_pin), std::bind(&Rotary::rotate, this), CHANGE);
-  attachInterrupt(digitalPinToInterrupt(_sw_pin), std::bind(&Rotary::button, this), RISING);
+  attachInterrupt(digitalPinToInterrupt(_clk_pin), std::bind(&Rotary::_rotate, this), CHANGE);
+  attachInterrupt(digitalPinToInterrupt(_dt_pin), std::bind(&Rotary::_rotate, this), CHANGE);
+  attachInterrupt(digitalPinToInterrupt(_sw_pin), std::bind(&Rotary::_button, this), RISING);
 }
 
-void Rotary::rotate() {  
+void Rotary::_rotate() {  
   static uint8_t old_AB = 3;
   static int8_t encval = 0;  
   static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};
@@ -46,7 +46,7 @@ void Rotary::rotate() {
   }
 }
 
-void Rotary::button() {
+void Rotary::_button() {
   if(millis() - _debounce > _threshold) {
     _debounce = millis();
     _click = true;

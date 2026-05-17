@@ -7,13 +7,14 @@ function computeDewPoint($values) {
 	$alpha = $a * $t / ($b + $t) + log($h / 100);
 	$dew = round($b * $alpha / ($a - $alpha), 1);
 	$delta = round($t - $dew, 1);
-	if($delta < 2) $p1 = 'high_risk';
-	elseif ($delta <= 5) $p1 = 'moderate_risk';
-	else $p1 = 'no_risk';
-	if ($dew < 0) $p2 = 'frost';
-	elseif($dew <= 5) $p2 = 'dew';
-	else $p2 = 'nothing';
-    return ['val' => $dew, 'delta' => $delta, 'desc' => _t('dewpoint', [$p1, $p2])];
+	if($t < 0 && $delta > 5) $p1 = 'black_frost';
+	elseif ($t < 0 && $dew < 0 && $delta <= 5) $p1 = 'frost';
+	elseif($t >= 0 && $t < 2 && $dew > 0 && $delta <= 3) $p1 = 'white_frost';
+	elseif($t >= 0 && $delta < 2) $p1 = 'mist';
+	elseif($t > 0 && $dew > 0 && $delta >= 2 && $delta <= 5) $p1 = 'dew';
+	elseif($delta > 5 && $delta <= 10) $p1 = 'humide';
+	else $p1 = 'dry';
+    return ['val' => $dew, 'delta' => $delta, 'desc' => _t('dewpoint', [$p1])];
 }
 
 if(isset($requestData['id'])) {
