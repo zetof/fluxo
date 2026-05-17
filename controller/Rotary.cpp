@@ -9,32 +9,32 @@
 #include <FunctionalInterrupt.h>
 #include "Rotary.h"
 
-Rotary::Rotary(int clk_pin, int dt_pin, int sw_pin) {
-  _clk_pin = clk_pin;
-  _dt_pin = dt_pin;
-  _sw_pin = sw_pin;
+Rotary::Rotary(int clkPin, int dtPin, int swPin) {
+  _clkPin = clkPin;
+  _dtPin = dtPin;
+  _swPin = swPin;
 }
 
 void Rotary::begin() {
-  pinMode(_clk_pin, INPUT);
-  pinMode(_dt_pin, INPUT);
-  pinMode(_sw_pin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(_clk_pin), std::bind(&Rotary::_rotate, this), CHANGE);
-  attachInterrupt(digitalPinToInterrupt(_dt_pin), std::bind(&Rotary::_rotate, this), CHANGE);
-  attachInterrupt(digitalPinToInterrupt(_sw_pin), std::bind(&Rotary::_button, this), RISING);
+  pinMode(_clkPin, INPUT);
+  pinMode(_dtPin, INPUT);
+  pinMode(_swPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(_clkPin), std::bind(&Rotary::_rotate, this), CHANGE);
+  attachInterrupt(digitalPinToInterrupt(_dtPin), std::bind(&Rotary::_rotate, this), CHANGE);
+  attachInterrupt(digitalPinToInterrupt(_swPin), std::bind(&Rotary::_button, this), RISING);
 }
 
 void Rotary::_rotate() {  
-  static uint8_t old_AB = 3;
+  static uint8_t oldAB = 3;
   static int8_t encval = 0;  
-  static const int8_t enc_states[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};
+  static const int8_t encStates[]  = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};
  
-  old_AB <<=2;  
+  oldAB <<=2;  
  
-  if(digitalRead(_clk_pin)) old_AB |= 0x02;
-  if(digitalRead(_dt_pin)) old_AB |= 0x01;
+  if(digitalRead(_clkPin)) oldAB |= 0x02;
+  if(digitalRead(_dtPin)) oldAB |= 0x01;
    
-  encval += enc_states[( old_AB & 0x0f )];
+  encval += encStates[( oldAB & 0x0f )];
  
   if(encval > 3) {
     _counter++;
@@ -63,4 +63,5 @@ bool Rotary::click() {
   bool val = _click;
   _click = false;
   return val;
+
 }

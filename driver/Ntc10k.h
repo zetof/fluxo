@@ -7,7 +7,7 @@
 
 #define Ntc10k_h
 
-#define R1 10000
+#define R1 10000 // Resistor coupled to the thermistor to make the dividing bridge (in ohms)
 
 /*
   Following coefficients have been estimated from the Thermistor Calculator at:
@@ -32,7 +32,7 @@ class Ntc10k
     float read();
 
   private:
-    int _analog_pin;
+    int _analogPin;
 };
 
 #endif

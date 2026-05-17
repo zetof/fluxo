@@ -11,15 +11,15 @@
 class Rotary
 {
   public:
-    Rotary(int clk_pin, int dt_pin, int sw_pin);
+    Rotary(int clkPin, int dtPin, int swPin);
     void begin();
     int read();
     bool click();
 
   private:
-    int _clk_pin;
-    int _dt_pin;
-    int _sw_pin;
+    int _clkPin;
+    int _dtPin;
+    int _swPin;
     int _counter = 0;
     bool _click = false;
     int _debounce = 0;

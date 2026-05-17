@@ -24,9 +24,9 @@ class Servo
     int status();
 
   private:
-    int _clockwise_pin;
-    int _counterclockwise_pin;
-    int _full_90_degrees_time;
+    int _clockwisePin;
+    int _counterclockwisePin;
+    int _full90DegreesTime;
     int _position;
     bool _status = STOP;
     void _turn(int time);
