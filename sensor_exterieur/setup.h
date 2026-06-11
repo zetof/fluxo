@@ -5,15 +5,18 @@
 #define I2C_SDA   9  // GPIO for I2C communication SDA setup by wire lib
 #define I2C_SCL   8  // GPIO for I2C communication SCL setup by wire lib
 
-// WiFi related info
-#define WIFI_RETRIES 20 // Number of times we try to connect to WiFi befor disabling and restarting again
-#define WIFI_DELAY   10 // Delay in seconds we turn off WiFi module in case of a problem 
+// Sensor ID
+#define SENSOR_ID 2
 
 // Sensors info
 #define ALTITUDE 500 // Altitude of the sensor in meters
 
-// Sensor ID
-#define SENSOR_ID 2
+// Sampling information to reduce noise
+#define NB_OF_SAMPLES        12   // Number of samples to reduce noise by median filter
+#define TIME_BETWEEN_SAMPLES 5    // Time between those samples
+#define ALPHA_TEMP           0.25 // Exponential filter coefficient for temperature
+#define ALPHA_HUMI           0.1  // Exponential filter coefficient for humidity
+#define ALPHA_PRES           0.15 // Exponential filter coefficient for pressure
 
 // Sleep time between two measures
 #define uS_TO_MIN_FACTOR 60000000ULL // Conversion factor for micro seconds to minutes
