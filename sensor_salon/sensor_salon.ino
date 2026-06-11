@@ -13,25 +13,49 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <Wire.h>
+#include "Filter.h"
 #include "root_ca.h"
 #include "secrets.h"
 #include "setup.h"
 
-float temp;
-float humidity;
-float pressure;
+// Save sensor measures during sleep mode
+RTC_DATA_ATTR float savedTemperature = 0; 
+RTC_DATA_ATTR float savedHumidity = 0; 
+RTC_DATA_ATTR float savedPressure = 0; 
 
+// Prepare median filters
+Filter t;
+Filter h;
+Filter p;
+
+// Function used to compute measured pressure at sea level
+float seaLevelPressure(float readPressure, float temperature) {
+    return readPressure * (1 + (9.81 * ALTITUDE) / (287 * (temperature + 273.15)));
+}
+
+// Function use to apply an exponential filter on previous and current values
+float expFilter(float preValue, float value, float c) {
+    if(preValue == 0) return value;
+    else return (1 - c) * preValue + c * value; 
+}
+
+// Initialize temperature, humidity and pressure sensors
 DHT dht22(DHT22_PIN, DHT22);
 Adafruit_BMP085 bmp;
 
 void setup() {
+
+  // Start serail communication
   Serial.begin(9600);
   delay(1000);
 
+  // Prepare wire lib for pressure sensor
   Wire.begin(I2C_SDA,I2C_SCL);
   
+  // Prepare deep sleep mode
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_MIN_FACTOR);
-  
+
+  // Connect to WiFi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to WiFi network");
   while(WiFi.status() != WL_CONNECTED) {
@@ -42,33 +66,33 @@ void setup() {
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
+  // Start reading temperature and humidity
   dht22.begin();
-  temp = dht22.readTemperature();
-  humidity = dht22.readHumidity();
 
-  if(!bmp.begin()) {
-    Serial.println("No BMP180 module found, working without");
-  }
+  // Start reading pressure. If not available set to zero
+  if(!bmp.begin()) p.addSample(0);
+  else p.addSample(seaLevelPressure(bmp.readPressure(), bmp.readTemperature()));
+  
+  // DHT22 is the minimum viable sensor. If not present abort reading stage
+  if(isnan(t.addSample(dht22.readTemperature())) || isnan(h.addSample(dht22.readHumidity()))) Serial.println("Failed to read from DHT22 sensori, exiting!");
   else {
-    pressure = bmp.readPressure();
-  }
 
-  if (isnan(temp) || isnan(humidity)) {
-    Serial.println("Failed to read from DHT22 sensor!");
-  }
-  else {
-    if(isnan(pressure)) {
-      Serial.println("Setting pressure to its default (0hPa)");
-      pressure = 0;
+    // Read sensors with a defined amount of samples with a defined delay between each measure
+    // We put each sample in appropriate filter for later computing of the median filter
+    for(int i = 1; i < NB_OF_SAMPLES; i++) {  
+        t.addSample(dht22.readTemperature());
+        h.addSample(dht22.readHumidity());
+        if(p.getSample(0) == 0) p.addSample(0);
+        else p.addSample(seaLevelPressure(bmp.readPressure(), bmp.readTemperature()));
+        delay(1000 * TIME_BETWEEN_SAMPLES);
     }
-    else {
-      pressure = pressure * (1 + (9.81 * ALTITUDE) / (287 * (temp + 273.15)));
-    }
+    
+    // We apply two filters: median filter and exponential filter with defined coefficients
+    savedTemperature = expFilter(savedTemperature, t.medianFilter(), ALPHA_TEMP);
+    savedHumidity = expFilter(savedHumidity, h.medianFilter(), ALPHA_HUMI);
+    savedPressure = expFilter(savedPressure, p.medianFilter(), ALPHA_PRES);
 
-    Serial.println("Temperature: " + String(temp) + "°C");
-    Serial.println("Humidity:    " + String(humidity) + "%");
-    Serial.println("Pression:    " + String(pressure) + "hPa");
-
+    // We sent measured values to the database
     WiFiClientSecure *client = new WiFiClientSecure;
     if(client) {
       client->setCACert(RootCa);
@@ -76,7 +100,7 @@ void setup() {
       if(https.begin(*client, API_ENDPOINT)) {
         https.addHeader("Content-Type", "application/json");
         https.addHeader("X-Api-Key", API_KEY);
-        int httpResponseCode = https.POST("{\"id\":" + String(SENSOR_ID) + ",\"temperature\":" + String(temp) + ",\"humidity\":" + String(humidity) + ",\"pressure\":" + String(pressure / 100) +"}");
+        int httpResponseCode = https.POST("{\"id\":" + String(SENSOR_ID) + ",\"temperature\":" + String(savedTemperature) + ",\"humidity\":" + String(savedHumidity) + ",\"pressure\":" + String(savedPressure / 100) +"}");
         if(httpResponseCode > 0) {
           Serial.print("HTTP Response code: ");
           Serial.println(httpResponseCode);
@@ -88,6 +112,8 @@ void setup() {
       https.end();
     }
   }
+
+  // Finally we go to deep sleep mode
   Serial.println("Now Going in sleep mode for " + String(TIME_TO_SLEEP) + " minutes");
   Serial.flush();
   esp_deep_sleep_start();
