@@ -1,5 +1,7 @@
 #pragma once
 
+#define DEBUG false // Set to true to send extra infos through serial
+
 // GPIO info
 #define DHT22_PIN 15 // GPIO for DHT22 temperature and humidity sensot
 #define I2C_SDA   21 // GPIO for I2C communication SDA setup by wire lib
