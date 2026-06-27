@@ -44,7 +44,7 @@
         $index = $last;
         while($index >= 0) {
         if($index == $last) {
-            $xVals = '["'.date_format(date_create($data['values'][$index]['time']),"H:i").'"';
+            $xVals = '[new Date("'.$data['values'][$index]['time'].'")';
             $p = $data['values'][$index]['pressure'];
             if($p >= PMIN && $p <= PMAX) $ypVals = '['.strval($p);
             else $ypVals = '[NaN';
@@ -52,7 +52,7 @@
             $ytVals = '['.strval($data['values'][$index]['temperature']);
         }
         else {
-            $xVals .= ', "'.date_format(date_create($data['values'][$index]['time']),"H:i").'"';
+            $xVals .= ', new Date("'.$data['values'][$index]['time'].'")';
             $p = $data['values'][$index]['pressure'];
             if($p >= PMIN && $p <= PMAX) $ypVals .= ', '.strval($p);
             else $ypVals .= ', NaN';
@@ -115,7 +115,14 @@
                     fontColor: "white",
                 },
                 scales: {
-                    yTemp: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            displayFormats: { hour: 'HH:mm' },
+                            tooltipFormat: 'dd/MM/yyyy - HH:mm'
+                        }
+                    },
+                    yTemp: {    
                         type: 'linear',
                         position: 'left',
                         min: -20,
